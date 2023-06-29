@@ -19,8 +19,8 @@ def extract_dvol_data(response):
     return result
 
 
-def define_limits(avgDVOL, price):
-    impliedRange = (avgDVOL / 19.104) / 100
+def define_limits(avg_dvol, price):
+    impliedRange = (avg_dvol / 19.104) / 100
     upperLimitMulti = 1 + impliedRange
     lowerLimitMulti = 1 - impliedRange
     upperBound = price * upperLimitMulti
@@ -39,12 +39,14 @@ async def call_api(msg):
 
 async def get_price():
     msg = \
-        {"jsonrpc": "2.0",
-         "method": "public/get_index_price",
-         "id": 440414585,
-         "params": {
-             "index_name": "btc_usd"}
-         }
+        {
+            "jsonrpc": "2.0",
+            "method": "public/get_index_price",
+            "id": 440414585,
+            "params": {
+                "index_name": "btc_usd"
+            }
+        }
     response = await call_api(msg)
     parsed_response = json.loads(response)
     index_price = parsed_response["result"]["index_price"]
@@ -68,13 +70,16 @@ async def get_dvol():
     avgDVOL = extract_dvol_data(response)
     return avgDVOL
 
+# Possibility that current BB option IV should be used rather than VOL index for a more accurate representation of
+# implied range
+
 
 async def main():
     avgDVOL = await get_dvol()
     price = await get_price()
     upperBound, lowerBound = define_limits(avgDVOL, price)
-    print("AVG DVOL Past 24hrs:", avgDVOL)
-    print("Impiled Range is between", upperBound, "&", lowerBound)
+    print(f'AVG DVOL Past 24hrs: {avgDVOL}')
+    print(f'Implied Range is between {upperBound} & {lowerBound}')
 
 if __name__ == '__main__':
     asyncio.run(main())
